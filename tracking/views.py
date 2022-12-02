@@ -6,13 +6,13 @@ from django.contrib.auth.models import User
 from .models import Lab, Food, DailyEntry, Profile, FoodHistory
 from .forms import LabForm, ExtendedUserCreationForm, ProfileForm
 import requests
-# import environ
+import environ
 from datetime import date
 from json import dumps
 import os
 
 # Set env
-# env = environ.Env()
+env = environ.Env()
 
 # ------------ VIEWS ------------#
 
@@ -85,7 +85,7 @@ def dailyPageView(request):
             food = Food.objects.get(id=item['food_id'])
 
             # Update totals with calculations
-            ProteinTotal += round(float(food.protein_g * item['quantity']), 2)
+            ProteinTotal += float(food.protein_g * item['quantity'])
             SodiumTotal += float(food.sodium_mg * item['quantity'])
             PhosphorusTotal += float(food.phosphorus_mg * item['quantity'])
             PotassiumTotal += float(food.potassium_mg * item['quantity'])
@@ -112,6 +112,9 @@ def dailyPageView(request):
         ProteinPercentage = (float(ProteinTotal/RecommendedProtein)) * 100
         PotassiumPercentage = (float(PotassiumTotal/RecommendedPotassium)) * 100
         PhosphorusPercentage = (float(PhosphorusTotal/RecommendedPhosphorus)) * 100
+
+        # Round protein total
+        ProteinTotal = round(ProteinTotal, 2)
 
         # Set context variable
         context = {
@@ -212,22 +215,22 @@ def searchAPIResultsPageView(request):
         query = request.GET.__getitem__("query")
 
         # Set body for request
-        payload = { 
-            "query": query,
-            "api_key": os.getenv('FOOD_API_KEY')
-        }
-
-        # # Set body for request
         # payload = { 
         #     "query": query,
-        #     "api_key": env('FOOD_API_KEY')
+        #     "api_key": os.getenv('FOOD_API_KEY')
         # }
 
-        # Send request
-        data = (requests.get(f"{os.getenv('FOOD_API_URL')}/foods/search", params=payload)).json()
+        # Set body for request
+        payload = { 
+            "query": query,
+            "api_key": env('FOOD_API_KEY')
+        }
 
         # Send request
-        # data = (requests.get(f"{env('FOOD_API_URL')}/foods/search", params=payload)).json()
+        # data = (requests.get(f"{os.getenv('FOOD_API_URL')}/foods/search", params=payload)).json()
+
+        # Send request
+        data = (requests.get(f"{env('FOOD_API_URL')}/foods/search", params=payload)).json()
 
         # Set context
         context = {
@@ -296,22 +299,22 @@ def saveAPIFood(request):
         food = request.GET.__getitem__("food")
 
         # Set body for request
-        payload = {
-            "api_key": os.getenv('FOOD_API_KEY'),
-            "nutrients": "203,305,306,307"
-        }
-
-        # # Set body for request
         # payload = {
-        #     "api_key": env('FOOD_API_KEY'),
+        #     "api_key": os.getenv('FOOD_API_KEY'),
         #     "nutrients": "203,305,306,307"
         # }
 
-        # Send request, parsing json response to dict
-        outcome = (requests.get(f"{os.getenv('FOOD_API_URL')}/food/{food}", params=payload)).json()
+        # Set body for request
+        payload = {
+            "api_key": env('FOOD_API_KEY'),
+            "nutrients": "203,305,306,307"
+        }
 
         # Send request, parsing json response to dict
-        # outcome = (requests.get(f"{env('FOOD_API_URL')}/food/{food}", params=payload)).json()
+        # outcome = (requests.get(f"{os.getenv('FOOD_API_URL')}/food/{food}", params=payload)).json()
+
+        # Send request, parsing json response to dict
+        outcome = (requests.get(f"{env('FOOD_API_URL')}/food/{food}", params=payload)).json()
 
         # Initialize new food var
         newFood = {}
