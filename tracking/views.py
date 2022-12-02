@@ -9,7 +9,7 @@ import requests
 import environ
 from datetime import date
 from json import dumps
-import os
+# import os
 
 # Set env
 env = environ.Env()
